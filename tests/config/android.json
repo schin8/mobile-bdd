@@ -1,0 +1,8 @@
+{
+  "appium.server.url": "http://127.0.0.1:4723",
+  "device.name": "emulator-5554",
+  "platform.version": "16",
+  "browser.name": "Chrome",
+  "no.reset": "true",
+  "implicit.wait.seconds": "10"
+}

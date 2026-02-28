@@ -1,0 +1,8 @@
+{
+  "appium.server.url": "http://127.0.0.1:4723",
+  "device.name": "iPhone 15",
+  "platform.version": "17.0",
+  "browser.name": "Safari",
+  "no.reset": "false",
+  "implicit.wait.seconds": "10"
+}
