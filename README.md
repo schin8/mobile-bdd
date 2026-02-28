@@ -11,6 +11,10 @@ mobile/
 ├── package.json
 ├── tsconfig.json
 ├── cucumber.js
+├── .env.example         Environment variable template
+├── .appiumrc.json       Appium server configuration
+├── start_android.sh     Helper script to launch the Android emulator
+├── start_ios.sh         Helper script to launch the iOS simulator
 ├── src/
 │   ├── appium/          AppiumClient — direct W3C WebDriver protocol client
 │   ├── config/          ConfigReader — loads per-platform JSON config
@@ -20,7 +24,9 @@ mobile/
 │   ├── steps/           Step definitions
 │   ├── support/         Hooks, logger, world
 │   └── config/          android.json, ios.json
-└── features/            Gherkin .feature files
+├── features/            Gherkin .feature files
+├── docs/                Additional documentation (Troubleshooting, Changes, IDE setup)
+└── TestPlans/           UAT test plan references
 ```
 
 ---
@@ -43,7 +49,23 @@ mobile/
 pnpm install
 ```
 
-## 2. Install Appium
+## 2. Configure Environment Variables
+
+Copy the example file and fill in the required values:
+
+```bash
+cp .env.example .env
+```
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `MAGIC_CODE` | Yes (staging) | Magic verification code used to bypass OTP on the staging environment |
+| `LOG_LEVEL` | No | Logging verbosity (`error`, `warn`, `info`, `debug`). Defaults to `info` |
+| `NODE_TLS_REJECT_UNAUTHORIZED` | No | Set to `0` to skip TLS certificate verification (equivalent to `curl -k`) |
+
+---
+
+## 3. Install Appium
 
 ```bash
 # Install Appium 2 globally
@@ -59,7 +81,7 @@ appium driver list --installed
 
 ---
 
-## 3. Connecting an Android Device
+## 4. Connecting an Android Device
 
 ### Option A — Physical Device
 
@@ -89,9 +111,16 @@ appium driver list --installed
 
 1. Open **Android Studio > Device Manager** and create an AVD (e.g. Pixel 7, API 34).
 
-2. Start the emulator:
+2. Start the emulator using the provided helper script:
    ```bash
-   emulator -avd Pixel_7_API_34
+   ./start_android.sh
+   ```
+   The script accepts several options:
+   ```
+   ./start_android.sh [avd_name]          # Launch a specific AVD (default: Pixel_8_API_36)
+   ./start_android.sh --list              # List available AVDs
+   ./start_android.sh --reset             # Kill and restart ADB server
+   ./start_android.sh --proxy [host:port] # Launch with HTTP proxy
    ```
 
 3. Verify:
@@ -111,7 +140,7 @@ adb connect <DEVICE_IP>:5555
 
 ---
 
-## 4. Connecting an iOS Device
+## 5. Connecting an iOS Device
 
 ### Option A — Physical Device
 
@@ -144,22 +173,29 @@ adb connect <DEVICE_IP>:5555
 
 ### Option B — iOS Simulator
 
-1. **List available simulators**:
+1. Start the simulator using the provided helper script:
    ```bash
-   xcrun simctl list devices available
+   ./start_ios.sh
+   ```
+   The script accepts several options:
+   ```
+   ./start_ios.sh [device_name]       # Launch a specific simulator (default: iPhone 16e)
+   ./start_ios.sh --list              # List available simulators
+   ./start_ios.sh --shutdown          # Shutdown all running simulators
+   ./start_ios.sh --url [url]         # Open a URL in Safari after boot
    ```
 
-2. **Boot a simulator**:
-   ```bash
-   xcrun simctl boot "iPhone 15"
-   open -a Simulator
+2. The default `ios.json` targets `iPhone 15`. Make sure `device.name` and `platform.version` in `tests/config/ios.json` match the simulator you started. For example, to use the default script simulator:
+   ```json
+   {
+     "device.name": "iPhone 16e",
+     "platform.version": "18.0"
+   }
    ```
-
-3. The default `ios.json` targets `iPhone 15`.
 
 ---
 
-## 5. Running Tests
+## 6. Running Tests
 
 ### Start the Appium server
 
@@ -197,21 +233,18 @@ PLATFORM=android MOBILE_DEVICE_NAME=emulator-5556 pnpm test
 
 ---
 
-## 6. Test Coverage
+## 7. Test Coverage
 
-Feature files in `features/` and their corresponding UAT test cases:
+Feature files in `features/` and their corresponding test cases:
 
-| Feature File | Test Plan Reference | Description |
-|---|---|---|
-| `uat-landing-page.feature` | UAT-TC-01.0 | Homepage navigation to /jobs/ via hamburger menu |
-| `uat-login-signup.feature` | UAT-TC-01.2 – TC-01.5 | Login form display, email validation, empty-field checks |
-| `uat-verify-code.feature` | UAT-TC-02.1 – TC-02.2 | Verification code: invalid codes, existing-user login, new-user Create Account dialog |
-| `uat-new-user.feature` | UAT-TC-03.1 | End-to-end new user signup: email, verify, fill form, authenticated |
-| `jobs-header.feature` | — | Jobs page header element verification |
+| Feature File | Description |
+|---|---|
+| `appium_home.feature` | Verifies the Appium documentation home page loads correctly |
+| `appium_ecosystem.feature` | Verifies the Appium ecosystem tools page loads and contains expected content |
 
 ---
 
-## 7. Writing Tests
+## 8. Writing Tests
 
 ### Add a Gherkin feature
 
@@ -248,7 +281,7 @@ Extend `BasePage` in `tests/pages/` and use `waitForElement`, `tap`, `type`, etc
 
 ---
 
-## 8. Reports
+## 9. Reports
 
 After a test run, reports are generated in:
 
