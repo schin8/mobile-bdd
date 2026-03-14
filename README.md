@@ -349,3 +349,4 @@ claude mcp add appium-mcp -- npx -y appium-mcp@latest
 ```
 
 https://github.com/appium/appium-mcp
+# AI_Prompts
